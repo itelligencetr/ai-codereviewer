@@ -4,9 +4,12 @@ on:
     types:
       - opened
       - synchronize
+      - ready_for_review
 permissions: write-all
 jobs:
+  if: '! github.event.pull_request.draft'
   code_review:
+    if: '! github.event.pull_request.draft'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -17,4 +20,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           OPENAI_API_MODEL: "gpt-4-1106-preview"
-          exclude: "yarn.lock,dist/**"
+          exclude: "yarn.lock, dist/**, **/*.json, **/*.md, **/*.yaml, **/*.xml"

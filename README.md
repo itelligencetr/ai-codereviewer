@@ -32,6 +32,7 @@ on:
 permissions: write-all
 jobs:
   review:
+    if: '! github.event.pull_request.draft'                                       # Only run on non-draft pull requests. Must be coupled with the ready_for_review event above.
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
@@ -43,7 +44,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # The GITHUB_TOKEN is there by default so you just need to keep it like it is and not necessarily need to add it as secret as it will throw an error. [More Details](https://docs.github.com/en/actions/security-guides/automatic-token-authentication#about-the-github_token-secret)
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           OPENAI_API_MODEL: "gpt-4" # Optional: defaults to "gpt-4"
-          exclude: "**/*.json, **/*.md" # Optional: exclude patterns separated by commas
+          MAX_TOKEN: "700" # Optional: defaults to "700"
+          exclude: "yarn.lock, dist/**, **/*.json, **/*.md, **/*.yaml, **/*.xml"  # Optional: File patterns, separated by commas, to exclude from analysis.
 ```
 
 4. Replace `your-username` with your GitHub username or organization name where the AI Code Reviewer repository is
