@@ -8,6 +8,18 @@ import minimatch from "minimatch";
 const GITHUB_TOKEN: string = core.getInput("GITHUB_TOKEN");
 const OPENAI_API_KEY: string = core.getInput("OPENAI_API_KEY");
 const OPENAI_API_MODEL: string = core.getInput("OPENAI_API_MODEL");
+const MAX_TOKEN: number = Number(core.getInput("MAX_TOKEN"));
+
+const SUPPORTED_JSON_FORMAT_MODELS = [
+  "gpt-4o",
+  "gpt-4-turbo-preview",
+  "gpt-4-turbo",
+  "gpt-3.5-turbo",
+  "gpt-4-0125-preview",
+  "gpt-4-1106-preview",
+  "gpt-3.5-turbo-0125",
+  "gpt-3.5-turbo-1106",
+];
 
 const octokit = new Octokit({ auth: GITHUB_TOKEN });
 
@@ -117,7 +129,7 @@ async function getAIResponse(prompt: string): Promise<Array<{
   const queryConfig = {
     model: OPENAI_API_MODEL,
     temperature: 0.2,
-    max_tokens: 700,
+    max_tokens: MAX_TOKEN,
     top_p: 1,
     frequency_penalty: 0,
     presence_penalty: 0,
@@ -127,9 +139,9 @@ async function getAIResponse(prompt: string): Promise<Array<{
     const response = await openai.chat.completions.create({
       ...queryConfig,
       // return JSON if the model supports it:
-      ...(OPENAI_API_MODEL === "gpt-4-1106-preview"
-        ? { response_format: { type: "json_object" } }
-        : {}),
+      ...(SUPPORTED_JSON_FORMAT_MODELS.includes(OPENAI_API_MODEL)
+          ? { response_format: { type: "json_object" } }
+          : {}),
       messages: [
         {
           role: "system",
@@ -139,6 +151,9 @@ async function getAIResponse(prompt: string): Promise<Array<{
     });
 
     const res = response.choices[0].message?.content?.trim() || "{}";
+
+    console.log(`Trimmed Response: ${res}`);
+
     return JSON.parse(res).reviews;
   } catch (error) {
     console.error("Error:", error);
